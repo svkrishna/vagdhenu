@@ -20,6 +20,26 @@ sys.path.insert(0, SRC)
 
 from huggingface_hub import hf_hub_download
 
+
+def _ensure_bigvgan():
+    """NVIDIA BigVGAN ships as a repo, not a pip package — clone it once and put it on sys.path so
+    `import bigvgan` works (render_core uses the torch path, use_cuda_kernel=False, so no build)."""
+    try:
+        import bigvgan  # noqa: F401
+        return
+    except ImportError:
+        pass
+    import subprocess
+    dst = os.path.join(HERE, "BigVGAN")
+    if not os.path.isdir(os.path.join(dst, ".git")):
+        subprocess.run(["git", "clone", "--depth", "1",
+                        "https://github.com/NVIDIA/BigVGAN.git", dst], check=True)
+    if dst not in sys.path:
+        sys.path.insert(0, dst)
+
+
+_ensure_bigvgan()
+
 # ── config ───────────────────────────────────────────────────────────────────────────────
 WEIGHTS_REPO = os.environ.get("VAGDHENU_HF", "prathoshap/vagdhenu")
 VOICE_FILE   = os.environ.get("VAGDHENU_VOICE", "voice_steer_ema_2026-06-17.pt")
