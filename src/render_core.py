@@ -111,6 +111,26 @@ def _satva(s):
         out.append(c); i += 1
     return "".join(out)
 
+_KSHA = "ಕ್ಷ"
+def _visarga_ksha(s):
+    """Visarga before क्ष (ಕ್ಷ) → jihvāmūlīya vowel-echo. F5 swallows the visarga before the heavy
+    kṣa conjunct, so respell it as the ह-echo of the preceding vowel — same map as _danda_fix, but
+    mid-clip and ONLY before ಕ್ಷ (e.g. आहुः क्षेत्रं → आहुहु क्षेत्रं, "āhuhu kṣetraṃ").
+    Short i/u/ṛ → hi/hu/hṛ · long vowel → leave the visarga · bare 'a' → ha."""
+    out = []; n = len(s); i = 0
+    while i < n:
+        c = s[i]
+        if c == "ಃ":
+            j = i + 1
+            while j < n and s[j] == " ": j += 1
+            if s[j:j + 3] == _KSHA:
+                pv = out[-1] if out else ""
+                if pv in _VECHO_SHORT:   out.append(_VECHO_SHORT[pv]); i += 1; continue
+                elif pv in _VLONG:       out.append("ಃ");             i += 1; continue
+                else:                     out.append("ಹ");             i += 1; continue
+        out.append(c); i += 1
+    return "".join(out)
+
 def _hna_metathesis(s):
     return s.replace("ಹ್ಣ", "ಣ್ಹ").replace("ಹ್ನ", "ನ್ಹ")
 
@@ -290,7 +310,7 @@ class Renderer:
         PIECES = [_basetext(p) for p in padas]
         if not no_sandhi:
             PIECES = [_satva(x) for x in PIECES]
-        PIECES = [_danda_fix(_anusvara_m(x)) for x in PIECES]
+        PIECES = [_danda_fix(_visarga_ksha(_anusvara_m(x))) for x in PIECES]
         PIECES = [_hna_metathesis(x) for x in PIECES]
         PIECES = [_vocalic_l(x) for x in PIECES]
 
